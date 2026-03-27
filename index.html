@@ -80,8 +80,8 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const TILE_SIZE = 32;
-const MAP_WIDTH = 10;
-const MAP_HEIGHT = 10;
+const MAP_WIDTH = 20;
+const MAP_HEIGHT = 20;
 const SPEED = 4;
 
 const map = Array.from({length:MAP_HEIGHT},(_,y)=>Array.from({length:MAP_WIDTH},(_,x)=>(x===0||y===0||x===MAP_WIDTH-1||y===MAP_HEIGHT-1)?1:0));
@@ -107,7 +107,7 @@ let budget=500000, reputation=100, security=100, morale=100;
 const eventTiles = [
   {x:2, y:2, scenarioIndex:0, triggered:false},
   {x:4, y:3, scenarioIndex:1, triggered:false}
-];
+  {x:7, y:9, scenarioIndex:2, triggered:false}];
 
 function update() {
   if(!scenarioOpen) handleMovement();
