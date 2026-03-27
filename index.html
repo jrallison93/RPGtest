@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ISM Scenario Game with Extended Map</title>
+<title>ISM Scenario Game - Campus Map</title>
 <style>
   body {
     margin: 0;
@@ -84,20 +84,42 @@ const MAP_WIDTH = 30;
 const MAP_HEIGHT = 30;
 const SPEED = 4;
 
-// Generate 30x30 map with walls (1 = wall, 0 = walkable)
-const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
-  Array.from({length: MAP_WIDTH}, (_, x) => {
-    if (x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1) return 1; // border walls
-    if (Math.random() < 0.15) return 1; // 15% chance for interior wall
-    return 0;
-  })
-);
-
-// Load player sprite
-const playerImage = new Image();
-playerImage.src = "https://i.imgur.com/6X12Q0b.png";
+// Fixed university campus-style map
+// 0 = walkable, 1 = wall/building
+const map = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+  [1,0,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+  [1,0,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
 
 // Player
+const playerImage = new Image();
+playerImage.src = "https://i.imgur.com/6X12Q0b.png";
 const player = { x:1, y:1, px:1*TILE_SIZE, py:1*TILE_SIZE, targetX:1, targetY:1, moving:false, direction:0, frame:0, frameTick:0 };
 const camera = { x:0, y:0 };
 
@@ -106,14 +128,15 @@ const keys = {};
 window.addEventListener("keydown", e=>keys[e.key]=true);
 window.addEventListener("keyup", e=>keys[e.key]=false);
 
-// Scenario integration
+// Scenario
 let scenarioOpen = false;
 let budget=500000, reputation=100, security=100, morale=100;
 
-// Event tiles linked to scenarios (adjusted to fit 30x30 map)
+// Event tiles (example positions)
 const eventTiles = [
-  {x:5, y:5, scenarioIndex:0, triggered:false},
-  {x:10, y:15, scenarioIndex:1, triggered:false}
+  {x:2, y:2, scenarioIndex:0, triggered:false},
+  {x:15, y:10, scenarioIndex:1, triggered:false},
+  {x:25, y:25, scenarioIndex:2, triggered:false}
 ];
 
 function update() {
@@ -191,7 +214,6 @@ function drawPlayer(){
   ctx.drawImage(playerImage, player.frame*spriteSize, player.direction*spriteSize, spriteSize,spriteSize, player.px-camera.x, player.py-camera.y, TILE_SIZE, TILE_SIZE);
 }
 
-// Scenario modal
 const modal = document.getElementById("scenarioModal");
 const modalText = document.getElementById("scenarioModalText");
 const modalChoices = document.getElementById("scenarioModalChoices");
