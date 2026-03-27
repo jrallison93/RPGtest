@@ -5,81 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>University Cyber Simulation Map</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: #f0f2f5;
-  }
-  h1 {
-    text-align: center;
-  }
-  #map {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 30px;
-  }
-  .node {
-    width: 60px;
-    height: 60px;
-    margin: 10px;
-    border-radius: 50%;
-    background-color: #1976d2;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-weight: bold;
-    border: 2px solid #0d47a1;
-    transition: transform 0.2s;
-  }
-  .node:hover {
-    transform: scale(1.2);
-  }
-  #scenario-container {
-    max-width: 800px;
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-  #scenario-image {
-    max-width: 100%;
-    height: auto;
-    margin: 15px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-  }
-  .choice-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    cursor: pointer;
-    border-radius: 6px;
-    border: none;
-    font-size: 16px;
-    background-color: #1976d2;
-    color: #fff;
-  }
-  .choice-btn:hover {
-    background-color: #1565c0;
-  }
-  #state {
-    margin-top: 20px;
-    font-weight: bold;
-    text-align: center;
-  }
-  #outcome {
-    margin-top: 10px;
-    font-style: italic;
-    background: #e3f2fd;
-    padding: 10px;
-    border-radius: 6px;
-  }
+  body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#f0f2f5; }
+  h1 { text-align:center; margin-bottom:30px; }
+  #map { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin-bottom:30px; }
+  .node { width:60px; height:60px; border-radius:50%; background:#1976d2; color:#fff;
+          display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;
+          border:2px solid #0d47a1; transition:transform 0.2s; }
+  .node:hover { transform:scale(1.2); }
+  /* Modal styling */
+  .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
+           overflow:auto; background-color: rgba(0,0,0,0.6); }
+  .modal-content { background:#fff; margin:50px auto; padding:20px; border-radius:8px;
+                   max-width:800px; position:relative; box-shadow:0 0 10px rgba(0,0,0,0.3); }
+  .close { position:absolute; top:10px; right:15px; color:#aaa; font-size:28px; font-weight:bold; cursor:pointer; }
+  .close:hover { color:#000; }
+  #scenario-image { max-width:100%; height:auto; margin:15px 0; border-radius:8px; border:1px solid #ccc; }
+  .choice-btn { display:block; width:100%; padding:10px; margin:10px 0; cursor:pointer; border-radius:6px; border:none; font-size:16px; background:#1976d2; color:#fff; }
+  .choice-btn:hover { background:#1565c0; }
+  #state { margin-top:20px; font-weight:bold; text-align:center; }
+  #outcome { margin-top:10px; font-style:italic; background:#e3f2fd; padding:10px; border-radius:6px; }
 </style>
 </head>
 <body>
@@ -87,77 +31,89 @@
 <h1>University Cyber Security Simulation</h1>
 
 <div id="map"></div>
+<div id="state"></div>
 
-<div id="scenario-container">
-  <div id="scenario-text"></div>
-  <img id="scenario-image" src="" alt="Scenario Image">
-  <div id="choices"></div>
-  <div id="outcome"></div>
-  <div id="state"></div>
+<!-- Modal -->
+<div id="scenario-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div id="scenario-text"></div>
+    <img id="scenario-image" src="" alt="Scenario Image">
+    <div id="choices"></div>
+    <div id="outcome"></div>
+  </div>
 </div>
 
+<!-- Load scenario bank -->
 <script src="scenario-bank.js"></script>
 <script>
-  const state = {
-    budget: 100000,
-    security: 100,
-    reputation: 100,
-    morale: 100
-  };
+// Initial game state
+const state = {
+  budget: 100000,
+  security: 100,
+  reputation: 100,
+  morale: 100
+};
 
-  const scenarioText = document.getElementById('scenario-text');
-  const scenarioImage = document.getElementById('scenario-image');
-  const choicesDiv = document.getElementById('choices');
-  const outcomeDiv = document.getElementById('outcome');
-  const stateDiv = document.getElementById('state');
-  const mapDiv = document.getElementById('map');
+const mapDiv = document.getElementById('map');
+const stateDiv = document.getElementById('state');
+const modal = document.getElementById('scenario-modal');
+const scenarioText = document.getElementById('scenario-text');
+const scenarioImage = document.getElementById('scenario-image');
+const choicesDiv = document.getElementById('choices');
+const outcomeDiv = document.getElementById('outcome');
+const closeBtn = document.querySelector('.close');
 
-  // Create map nodes
-  scenarios.forEach((scenario, idx) => {
-    const node = document.createElement('div');
-    node.className = 'node';
-    node.textContent = idx + 1;
-    node.title = `Scenario ${idx + 1}`;
-    node.onclick = () => renderScenario(idx);
-    mapDiv.appendChild(node);
+// Render current state
+function renderState() {
+  stateDiv.textContent = `Budget: £${state.budget} | Security: ${state.security} | Reputation: ${state.reputation} | Morale: ${state.morale}`;
+}
+
+// Generate map nodes dynamically
+scenarios.forEach((scenario, idx) => {
+  const node = document.createElement('div');
+  node.className = 'node';
+  node.textContent = idx + 1;
+  node.title = `Scenario ${idx + 1}`;
+  node.addEventListener('click', () => openScenario(idx));
+  mapDiv.appendChild(node);
+});
+
+// Open scenario modal
+function openScenario(index) {
+  const scenario = scenarios[index];
+  scenarioText.textContent = scenario.text;
+  scenarioImage.src = scenario.image;
+  outcomeDiv.textContent = '';
+  choicesDiv.innerHTML = '';
+
+  scenario.choices.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = choice.text;
+    btn.onclick = () => selectChoice(choice);
+    choicesDiv.appendChild(btn);
   });
 
-  function renderScenario(index) {
-    const scenario = scenarios[index];
-    scenarioText.textContent = scenario.text;
-    scenarioImage.src = scenario.image;
-    outcomeDiv.textContent = '';
-    choicesDiv.innerHTML = '';
+  modal.style.display = 'block';
+}
 
-    scenario.choices.forEach(choice => {
-      const btn = document.createElement('button');
-      btn.className = 'choice-btn';
-      btn.textContent = choice.text;
-      btn.onclick = () => selectChoice(choice);
-      choicesDiv.appendChild(btn);
-    });
-
-    renderState();
+// Handle choice selection
+function selectChoice(choice) {
+  const effects = choice.getEffects(state);
+  for (const key in effects) {
+    state[key] += effects[key];
   }
+  outcomeDiv.textContent = choice.getOutcome(state);
+  renderState();
+}
 
-  function selectChoice(choice) {
-    const effects = choice.getEffects(state);
-    for (const key in effects) {
-      state[key] += effects[key];
-    }
+// Close modal
+closeBtn.onclick = () => modal.style.display = 'none';
+window.onclick = e => { if(e.target === modal) modal.style.display = 'none'; }
 
-    const outcome = choice.getOutcome(state);
-    outcomeDiv.textContent = outcome;
-
-    renderState();
-  }
-
-  function renderState() {
-    stateDiv.textContent = `Budget: £${state.budget} | Security: ${state.security} | Reputation: ${state.reputation} | Morale: ${state.morale}`;
-  }
-
-  // Start by showing first scenario automatically
-  renderScenario(0);
+// Initialize
+renderState();
 </script>
 
 </body>
