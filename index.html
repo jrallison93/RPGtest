@@ -224,17 +224,6 @@ function showScenarioModal(index){
       security=Math.max(0,security+(effects.security||0));
       morale=Math.max(0,morale+(effects.morale||0));
       updateScoreDisplay();
-
-      // Show outcome text
-  const outcomeTextParts = [];
-  if (effects.budget) outcomeTextParts.push(`Budget ${effects.budget >=0 ? 'increased' : 'decreased'} by £${Math.abs(effects.budget).toLocaleString()}`);
-  if (effects.reputation) outcomeTextParts.push(`Reputation ${effects.reputation >=0 ? 'increased' : 'decreased'} by ${Math.abs(effects.reputation)}`);
-  if (effects.security) outcomeTextParts.push(`Security ${effects.security >=0 ? 'increased' : 'decreased'} by ${Math.abs(effects.security)}`);
-  if (effects.morale) outcomeTextParts.push(`Staff morale ${effects.morale >=0 ? 'increased' : 'decreased'} by ${Math.abs(effects.morale)}`);
-
-  document.getElementById("outcome-text").textContent = outcomeTextParts.join("; ");
-
-      
       modal.style.display="none";
       scenarioOpen=false;
     };
