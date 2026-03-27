@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>2D Pokémon-Style Engine with Scenario Tiles</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ISM Scenario Game with Map</title>
 <style>
   body {
     margin: 0;
@@ -16,124 +17,97 @@
   canvas {
     border: 2px solid white;
     image-rendering: pixelated;
+    margin-right: 20px;
   }
-  /* Scenario Modal */
+  .container {
+    max-width: 700px;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  }
+  .scores, .scenario, .choices, .outcome, .button-row { margin-bottom: 1rem; }
+  .score-card { padding: 0.8rem; background: #f8fbff; border-radius: 8px; margin-bottom: 0.4rem; }
+  .score-label { font-weight: bold; color: #555; margin-bottom: 0.2rem; }
+  .score-value { font-weight: bold; color: #111; font-size: 1.1rem; }
+  .choices button { display:block; width:100%; margin-bottom:0.6rem; padding:0.8rem; cursor:pointer; }
   #scenarioModal {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    color: #111;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-    display: none;
-    width: 300px;
-    z-index: 10;
+    top:50%; left:50%; transform:translate(-50%, -50%);
+    background:white; color:#111; padding:20px; border-radius:12px; display:none; width:320px; z-index:10;
   }
-  #scenarioModal h3 {
-    margin-top: 0;
-    font-size: 1.1rem;
-  }
-  #scenarioModal button {
-    width: 100%;
-    padding: 8px;
-    margin-top: 8px;
-    border: 1px solid #007bff;
-    border-radius: 6px;
-    background: #f0f8ff;
-    cursor: pointer;
-  }
-  #scenarioModal button:hover {
-    background: #e0f0ff;
-  }
-  #scoreboard {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: white;
-    font-weight: bold;
-    z-index: 5;
-  }
+  #scenarioModal h3 { margin-top:0; }
+  #scenarioModal button { width:100%; margin-top:0.5rem; padding:8px; cursor:pointer; }
 </style>
 </head>
 <body>
 
 <canvas id="gameCanvas" width="320" height="320"></canvas>
 
-<div id="scoreboard">
-  Budget: £<span id="budget">500,000</span> |
-  Reputation: <span id="reputation">100</span> |
-  Security: <span id="security">100</span> |
-  Morale: <span id="morale">100</span>
+<div class="container">
+  <div class="scores">
+    <div class="score-card">
+      <div class="score-label">Budget</div>
+      <div class="score-value" id="budget">£500,000</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Reputation</div>
+      <div class="score-value" id="reputation">100</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Security</div>
+      <div class="score-value" id="security">100</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Staff Morale</div>
+      <div class="score-value" id="morale">100</div>
+    </div>
+  </div>
+
+  <div class="scenario" id="scenario-text"></div>
+  <div class="choices" id="choices"></div>
+  <div class="outcome" id="outcome-text"></div>
 </div>
 
 <div id="scenarioModal">
-  <h3 id="scenarioText">Scenario text here</h3>
-  <div id="scenarioChoices"></div>
+  <h3 id="scenarioModalText"></h3>
+  <div id="scenarioModalChoices"></div>
 </div>
 
+<script src="scenario-bank.js"></script>
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const TILE_SIZE = 32;
-const MAP_WIDTH = 20;
-const MAP_HEIGHT = 20;
+const MAP_WIDTH = 10;
+const MAP_HEIGHT = 10;
 const SPEED = 4;
 
-// Sample map: 1 = wall, 0 = floor
-const map = Array.from({ length: MAP_HEIGHT }, (_, y) =>
-  Array.from({ length: MAP_WIDTH }, (_, x) =>
-    (x === 0 || y === 0 || x === MAP_WIDTH-1 || y === MAP_HEIGHT-1 || (x % 5 === 0 && y % 3 === 0)) ? 1 : 0
-  )
-);
+const map = Array.from({length:MAP_HEIGHT},(_,y)=>Array.from({length:MAP_WIDTH},(_,x)=>(x===0||y===0||x===MAP_WIDTH-1||y===MAP_HEIGHT-1)?1:0));
 
 // Load player sprite
 const playerImage = new Image();
 playerImage.src = "https://i.imgur.com/6X12Q0b.png";
 
 // Player
-const player = {
-  x: 2, y: 2, px: 2*TILE_SIZE, py: 2*TILE_SIZE,
-  targetX: 2, targetY: 2, moving: false,
-  direction: 0, frame: 0, frameTick: 0
-};
-
-// Camera
+const player = { x:1, y:1, px:1*TILE_SIZE, py:1*TILE_SIZE, targetX:1, targetY:1, moving:false, direction:0, frame:0, frameTick:0 };
 const camera = { x:0, y:0 };
 
 // Input
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+window.addEventListener("keydown", e=>keys[e.key]=true);
+window.addEventListener("keyup", e=>keys[e.key]=false);
 
-// Scores
-let budget = 500000, reputation = 100, security = 100, morale = 100;
-
-// Scenario event tiles
-const eventTiles = [
-  { x: 4, y:4, scenario: {
-      text: "A security breach has occurred! What do you do?",
-      choices: [
-        { text: "Hire more security", effects: {budget:-50000, security: +20} },
-        { text: "Ignore it", effects: {reputation:-10, security:-20} },
-        { text: "Train staff", effects: {morale:+10, security:+5, budget:-10000} }
-      ]
-  }, triggered:false},
-  { x: 7, y:2, scenario: {
-      text: "Funding has been cut by management. Your move?",
-      choices: [
-        { text: "Cut staff perks", effects: {morale:-15, budget:+20000} },
-        { text: "Reduce security", effects: {security:-20, budget:+30000} },
-        { text: "Seek donations", effects: {reputation:+10, budget:+10000} }
-      ]
-  }, triggered:false}
-];
-
-// --- Main Loop ---
+// Scenario integration
 let scenarioOpen = false;
+let budget=500000, reputation=100, security=100, morale=100;
+
+// Event tiles linked to scenarios
+const eventTiles = [
+  {x:2, y:2, scenarioIndex:0, triggered:false},
+  {x:4, y:3, scenarioIndex:1, triggered:false}
+];
 
 function update() {
   if(!scenarioOpen) handleMovement();
@@ -142,7 +116,7 @@ function update() {
 }
 
 function handleMovement() {
-  if (!player.moving) {
+  if(!player.moving){
     let dx=0, dy=0;
     if(keys["ArrowUp"]){ dy=-1; player.direction=3; }
     else if(keys["ArrowDown"]){ dy=1; player.direction=0; }
@@ -150,8 +124,8 @@ function handleMovement() {
     else if(keys["ArrowRight"]){ dx=1; player.direction=2; }
 
     if(dx||dy){
-      const nx = player.x+dx, ny=player.y+dy;
-      if(map[ny] && map[ny][nx]===0){
+      const nx=player.x+dx, ny=player.y+dy;
+      if(map[ny][nx]===0){
         player.targetX=nx; player.targetY=ny; player.moving=true;
       }
     }
@@ -171,15 +145,13 @@ function handleMovement() {
 }
 
 function updateCamera(){
-  camera.x = player.px - canvas.width/2 + TILE_SIZE/2;
-  camera.y = player.py - canvas.height/2 + TILE_SIZE/2;
+  camera.x=player.px-canvas.width/2+TILE_SIZE/2;
+  camera.y=player.py-canvas.height/2+TILE_SIZE/2;
 }
 
 function updateAnimation(){
-  if(player.moving){
-    player.frameTick++;
-    if(player.frameTick>10){ player.frame=(player.frame+1)%4; player.frameTick=0; }
-  } else { player.frame=0; }
+  if(player.moving){ player.frameTick++; if(player.frameTick>10){player.frame=(player.frame+1)%4;player.frameTick=0;} }
+  else player.frame=0;
 }
 
 function draw(){
@@ -191,23 +163,15 @@ function draw(){
 function drawMap(){
   for(let y=0;y<MAP_HEIGHT;y++){
     for(let x=0;x<MAP_WIDTH;x++){
-      const screenX = x*TILE_SIZE - camera.x;
-      const screenY = y*TILE_SIZE - camera.y;
-
-      // Event tile visualization
-      const eventTile = eventTiles.find(t=>t.x===x && t.y===y);
-      if(eventTile){
-        ctx.fillStyle = eventTile.triggered ? "#28a745" : "#ff9900"; // green or orange
+      const screenX=x*TILE_SIZE-camera.x, screenY=y*TILE_SIZE-camera.y;
+      const tile=eventTiles.find(t=>t.x===x&&t.y===y);
+      if(tile){
+        ctx.fillStyle=tile.triggered?"#28a745":"#ff9900";
         ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-        if(eventTile.triggered){
-          ctx.fillStyle = "white";
-          ctx.font = "16px Arial";
-          ctx.fillText("✔", screenX+8, screenY+24);
-        }
+        if(tile.triggered){ ctx.fillStyle="white"; ctx.font="16px Arial"; ctx.fillText("✔",screenX+8, screenY+24); }
         continue;
       }
-
-      ctx.fillStyle = map[y][x]===1 ? "#444" : "#88c070";
+      ctx.fillStyle=map[y][x]===1?"#444":"#88c070";
       ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
     }
   }
@@ -215,66 +179,54 @@ function drawMap(){
 
 function drawPlayer(){
   const spriteSize=32;
-  ctx.drawImage(playerImage,
-    player.frame*spriteSize,
-    player.direction*spriteSize,
-    spriteSize, spriteSize,
-    player.px-camera.x, player.py-camera.y,
-    TILE_SIZE, TILE_SIZE
-  );
+  ctx.drawImage(playerImage, player.frame*spriteSize, player.direction*spriteSize, spriteSize,spriteSize, player.px-camera.x, player.py-camera.y, TILE_SIZE, TILE_SIZE);
 }
 
-// --- Check Scenario ---
+// Scenario modal
 const modal = document.getElementById("scenarioModal");
-const scenarioText = document.getElementById("scenarioText");
-const scenarioChoices = document.getElementById("scenarioChoices");
+const modalText = document.getElementById("scenarioModalText");
+const modalChoices = document.getElementById("scenarioModalChoices");
 
 function checkEventTile(){
-  const tile = eventTiles.find(t=>t.x===player.x && t.y===player.y && !t.triggered);
+  const tile=eventTiles.find(t=>t.x===player.x&&t.y===player.y&&!t.triggered);
   if(tile){
     tile.triggered=true;
-    showScenario(tile.scenario);
+    scenarioOpen=true;
+    showScenarioModal(tile.scenarioIndex);
   }
 }
 
-function showScenario(scenario){
-  scenarioOpen = true;
-  modal.style.display="block";
-  scenarioText.textContent = scenario.text;
-  scenarioChoices.innerHTML="";
+function showScenarioModal(index){
+  const scenario=scenarios[index];
+  modalText.textContent=scenario.text;
+  modalChoices.innerHTML="";
   scenario.choices.forEach(choice=>{
     const btn=document.createElement("button");
     btn.textContent=choice.text;
     btn.onclick=()=>{
-      // apply effects
-      if(choice.effects.budget) budget += choice.effects.budget;
-      if(choice.effects.reputation) reputation += choice.effects.reputation;
-      if(choice.effects.security) security += choice.effects.security;
-      if(choice.effects.morale) morale += choice.effects.morale;
-      updateScoreboard();
+      const effects=choice.getEffects({budget,reputation,security,morale});
+      budget=Math.max(0,budget+(effects.budget||0));
+      reputation=Math.max(0,reputation+(effects.reputation||0));
+      security=Math.max(0,security+(effects.security||0));
+      morale=Math.max(0,morale+(effects.morale||0));
+      updateScoreDisplay();
       modal.style.display="none";
-      scenarioOpen = false;
+      scenarioOpen=false;
     };
-    scenarioChoices.appendChild(btn);
+    modalChoices.appendChild(btn);
   });
+  modal.style.display="block";
 }
 
-function updateScoreboard(){
-  document.getElementById("budget").textContent = budget.toLocaleString();
-  document.getElementById("reputation").textContent = reputation;
-  document.getElementById("security").textContent = security;
-  document.getElementById("morale").textContent = morale;
+function updateScoreDisplay(){
+  document.getElementById("budget").textContent="£"+budget.toLocaleString();
+  document.getElementById("reputation").textContent=reputation;
+  document.getElementById("security").textContent=security;
+  document.getElementById("morale").textContent=morale;
 }
 
-// --- Loop ---
-function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
 playerImage.onload=()=>loop();
 </script>
-
 </body>
 </html>
