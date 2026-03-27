@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ISM Scenario Game with Map</title>
+<title>ISM Scenario Game with Extended Map</title>
 <style>
   body {
     margin: 0;
@@ -80,11 +80,18 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const TILE_SIZE = 32;
-const MAP_WIDTH = 10;
-const MAP_HEIGHT = 10;
+const MAP_WIDTH = 30;
+const MAP_HEIGHT = 30;
 const SPEED = 4;
 
-const map = Array.from({length:MAP_HEIGHT},(_,y)=>Array.from({length:MAP_WIDTH},(_,x)=>(x===0||y===0||x===MAP_WIDTH-1||y===MAP_HEIGHT-1)?1:0));
+// Generate 30x30 map with walls (1 = wall, 0 = walkable)
+const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
+  Array.from({length: MAP_WIDTH}, (_, x) => {
+    if (x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1) return 1; // border walls
+    if (Math.random() < 0.15) return 1; // 15% chance for interior wall
+    return 0;
+  })
+);
 
 // Load player sprite
 const playerImage = new Image();
@@ -103,10 +110,10 @@ window.addEventListener("keyup", e=>keys[e.key]=false);
 let scenarioOpen = false;
 let budget=500000, reputation=100, security=100, morale=100;
 
-// Event tiles linked to scenarios
+// Event tiles linked to scenarios (adjusted to fit 30x30 map)
 const eventTiles = [
-  {x:2, y:2, scenarioIndex:0, triggered:false},
-  {x:4, y:3, scenarioIndex:1, triggered:false}
+  {x:5, y:5, scenarioIndex:0, triggered:false},
+  {x:10, y:15, scenarioIndex:1, triggered:false}
 ];
 
 function update() {
@@ -150,8 +157,10 @@ function updateCamera(){
 }
 
 function updateAnimation(){
-  if(player.moving){ player.frameTick++; if(player.frameTick>10){player.frame=(player.frame+1)%4;player.frameTick=0;} }
-  else player.frame=0;
+  if(player.moving){ 
+    player.frameTick++; 
+    if(player.frameTick>10){player.frame=(player.frame+1)%4;player.frameTick=0;} 
+  } else player.frame=0;
 }
 
 function draw(){
