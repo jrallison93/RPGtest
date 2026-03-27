@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>2D Pokémon-Style Engine with Scenarios</title>
+<title>2D Pokémon-Style Engine with Scenario Tiles</title>
 <style>
   body {
     margin: 0;
@@ -83,14 +83,14 @@ const MAP_WIDTH = 20;
 const MAP_HEIGHT = 20;
 const SPEED = 4;
 
-// Sample map (1 = wall, 0 = floor)
+// Sample map: 1 = wall, 0 = floor
 const map = Array.from({ length: MAP_HEIGHT }, (_, y) =>
   Array.from({ length: MAP_WIDTH }, (_, x) =>
     (x === 0 || y === 0 || x === MAP_WIDTH-1 || y === MAP_HEIGHT-1 || (x % 5 === 0 && y % 3 === 0)) ? 1 : 0
   )
 );
 
-// Sample sprite (4x4)
+// Load player sprite
 const playerImage = new Image();
 playerImage.src = "https://i.imgur.com/6X12Q0b.png";
 
@@ -109,10 +109,10 @@ const keys = {};
 window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
-// --- Scores ---
+// Scores
 let budget = 500000, reputation = 100, security = 100, morale = 100;
 
-// --- Scenario Tiles ---
+// Scenario event tiles
 const eventTiles = [
   { x: 4, y:4, scenario: {
       text: "A security breach has occurred! What do you do?",
@@ -133,8 +133,10 @@ const eventTiles = [
 ];
 
 // --- Main Loop ---
+let scenarioOpen = false;
+
 function update() {
-  handleMovement();
+  if(!scenarioOpen) handleMovement();
   updateCamera();
   updateAnimation();
 }
@@ -191,6 +193,20 @@ function drawMap(){
     for(let x=0;x<MAP_WIDTH;x++){
       const screenX = x*TILE_SIZE - camera.x;
       const screenY = y*TILE_SIZE - camera.y;
+
+      // Event tile visualization
+      const eventTile = eventTiles.find(t=>t.x===x && t.y===y);
+      if(eventTile){
+        ctx.fillStyle = eventTile.triggered ? "#28a745" : "#ff9900"; // green or orange
+        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+        if(eventTile.triggered){
+          ctx.fillStyle = "white";
+          ctx.font = "16px Arial";
+          ctx.fillText("✔", screenX+8, screenY+24);
+        }
+        continue;
+      }
+
       ctx.fillStyle = map[y][x]===1 ? "#444" : "#88c070";
       ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
     }
@@ -222,8 +238,9 @@ function checkEventTile(){
 }
 
 function showScenario(scenario){
+  scenarioOpen = true;
   modal.style.display="block";
-  scenarioText.textContent=scenario.text;
+  scenarioText.textContent = scenario.text;
   scenarioChoices.innerHTML="";
   scenario.choices.forEach(choice=>{
     const btn=document.createElement("button");
@@ -236,6 +253,7 @@ function showScenario(scenario){
       if(choice.effects.morale) morale += choice.effects.morale;
       updateScoreboard();
       modal.style.display="none";
+      scenarioOpen = false;
     };
     scenarioChoices.appendChild(btn);
   });
