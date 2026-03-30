@@ -173,8 +173,11 @@ const SPEED = 4;
 const TILE = {
   GRASS: 0,
   WALL: 1,
-  BUILDING: 2
+  BUILDING_WALL: 2,
+  FLOOR: 3,
+  DOOR: 4
 };
+  
 
 // Fixed 30x30 campus map
 
@@ -186,11 +189,23 @@ const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
       return TILE.WALL;
 
     // Buildings
-    if((x>=2 && x<=5 && y>=2 && y<=5) || 
+    if((x>=2 && x<=5 && y>=2 && y<=5){
+
+  // Door (bottom middle)
+  if(x===3 && y===5) return TILE.DOOR;
+
+  // Walls (edges)
+  if(x===2 || x===5 || y===2 || y===5)
+    return TILE.BUILDING_WALL;
+
+  // Interior
+  return TILE.FLOOR;
+}|| 
        (x>=10 && x<=14 && y>=3 && y<=6) ||
        (x>=20 && x<=24 && y>=2 && y<=7) ||
        (x>=5 && x<=10 && y>=10 && y<=13) ||
-       (x>=15 && x<=19 && y>=15 && y<=18))
+       (x>=15 && x<=19 && y>=15 && y<=18)
+      )
       return TILE.BUILDING;
 
     // Walkable grass
@@ -246,7 +261,12 @@ function handleMovement() {
 
     if(dx||dy){
       const nx=player.x+dx, ny=player.y+dy;
-      if(map[ny][nx] === TILE.GRASS){
+      if(
+  map[ny][nx] === TILE.GRASS ||
+  map[ny][nx] === TILE.FLOOR ||
+  map[ny][nx] === TILE.DOOR
+    ){
+
         player.targetX=nx; player.targetY=ny; player.moving=true;
       }
     }
@@ -296,22 +316,34 @@ function drawMap(){
       }
       // Tile colouring based on type
 switch(map[y][x]){
+
   case TILE.GRASS:
-    ctx.fillStyle = "#88c070"; // green
+    ctx.fillStyle = "#88c070";
     break;
 
   case TILE.WALL:
-    ctx.fillStyle = "#2f2f2f"; // darker outer wall
+    ctx.fillStyle = "#2f2f2f"; // outer boundary
     break;
 
-  case TILE.BUILDING:
-    ctx.fillStyle = "#666"; // building blocks
+  case TILE.BUILDING_WALL:
+    ctx.fillStyle = "#444"; // building edge
+    break;
+
+  case TILE.FLOOR:
+    ctx.fillStyle = "#c2b280"; // light interior (beige)
+    break;
+
+  case TILE.DOOR:
+    ctx.fillStyle = "#8b5a2b"; // brown door
     break;
 
   default:
     ctx.fillStyle = "#000";
 }
 
+
+
+      
 ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
     }
   }
