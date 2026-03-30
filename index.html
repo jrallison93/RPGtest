@@ -184,31 +184,75 @@ const TILE = {
 const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
   Array.from({length: MAP_WIDTH}, (_, x) => {
 
-    // Outer walls
+    // Outer boundary
     if(x===0 || y===0 || x===MAP_WIDTH-1 || y===MAP_HEIGHT-1)
       return TILE.WALL;
 
-    // Building 1 (with interior)
-    if(x>=2 && x<=5 && y>=2 && y<=5){
+    /* =========================
+       LARGE BUILDING 1 (Top Left)
+       ========================= */
+    if(x>=2 && x<=9 && y>=2 && y<=9){
 
-      if(x===3 && y===5) return TILE.DOOR;
+      // Door
+      if(x===5 && y===9) return TILE.DOOR;
 
-      if(x===2 || x===5 || y===2 || y===5)
+      // Outer walls
+      if(x===2 || x===9 || y===2 || y===9)
+        return TILE.BUILDING_WALL;
+
+      // Internal vertical wall
+      if(x===6 && y>=3 && y<=8)
+        return TILE.BUILDING_WALL;
+
+      // Internal horizontal wall
+      if(y===6 && x>=3 && x<=8)
         return TILE.BUILDING_WALL;
 
       return TILE.FLOOR;
     }
 
-    // Other buildings (still solid for now)
-    if(
-      (x>=10 && x<=14 && y>=3 && y<=6) ||
-      (x>=20 && x<=24 && y>=2 && y<=7) ||
-      (x>=5 && x<=10 && y>=10 && y<=13) ||
-      (x>=15 && x<=19 && y>=15 && y<=18)
-    ){
-      return TILE.BUILDING_WALL;
+    /* =========================
+       LARGE BUILDING 2 (Top Right)
+       ========================= */
+    if(x>=18 && x<=26 && y>=2 && y<=10){
+
+      // Door
+      if(x===22 && y===10) return TILE.DOOR;
+
+      // Outer walls
+      if(x===18 || x===26 || y===2 || y===10)
+        return TILE.BUILDING_WALL;
+
+      // Internal rooms (grid style)
+      if((x===21 || x===23) && y>=3 && y<=9)
+        return TILE.BUILDING_WALL;
+
+      if(y===6 && x>=19 && x<=25)
+        return TILE.BUILDING_WALL;
+
+      return TILE.FLOOR;
     }
 
+    /* =========================
+       SMALL BUILDING (Bottom Area)
+       ========================= */
+    if(x>=10 && x<=14 && y>=18 && y<=22){
+
+      // Door
+      if(x===12 && y===22) return TILE.DOOR;
+
+      // Outer walls
+      if(x===10 || x===14 || y===18 || y===22)
+        return TILE.BUILDING_WALL;
+
+      // Small divider wall
+      if(x===12 && y>=19 && y<=21)
+        return TILE.BUILDING_WALL;
+
+      return TILE.FLOOR;
+    }
+
+    // Default ground
     return TILE.GRASS;
   })
 );
