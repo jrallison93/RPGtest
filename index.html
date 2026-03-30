@@ -214,6 +214,13 @@ function update() {
   updateAnimation();
 }
 
+  function updateModalScores(){
+  document.getElementById("modal-budget").textContent = "£" + budget.toLocaleString();
+  document.getElementById("modal-reputation").textContent = reputation;
+  document.getElementById("modal-security").textContent = security;
+  document.getElementById("modal-morale").textContent = morale;
+}
+
 function handleMovement() {
   if(!player.moving){
     let dx=0, dy=0;
@@ -300,10 +307,7 @@ function showScenarioModal(index){
   const scenario = scenarios[index];
 
   // Update scores inside modal
-  document.getElementById("modal-budget").textContent = "£" + budget.toLocaleString();
-  document.getElementById("modal-reputation").textContent = reputation;
-  document.getElementById("modal-security").textContent = security;
-  document.getElementById("modal-morale").textContent = morale;
+  updateModalScores();
 
   // Scenario text
   modalText.textContent = scenario.text;
@@ -328,6 +332,7 @@ function showScenarioModal(index){
       morale = Math.max(0, morale + (effects.morale || 0));
 
       updateScoreDisplay();
+      updateModalScores();   
 
       document.getElementById("scenarioModalOutcome").innerHTML =
         `<strong>You chose:</strong> ${choice.text}<br><br>${outcomeText}`;
