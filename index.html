@@ -170,20 +170,35 @@ const MAP_WIDTH = 30;
 const MAP_HEIGHT = 30;
 const SPEED = 4;
 
-// Fixed 30x30 campus map (1=wall/building, 0=walkable)
+const TILE = {
+  GRASS: 0,
+  WALL: 1,
+  BUILDING: 2
+};
+
+// Fixed 30x30 campus map
+
 const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
   Array.from({length: MAP_WIDTH}, (_, x) => {
-    if(x===0 || y===0 || x===MAP_WIDTH-1 || y===MAP_HEIGHT-1) return 1; // Outer wall
-    // Example buildings
+
+    // Outer walls
+    if(x===0 || y===0 || x===MAP_WIDTH-1 || y===MAP_HEIGHT-1)
+      return TILE.WALL;
+
+    // Buildings
     if((x>=2 && x<=5 && y>=2 && y<=5) || 
        (x>=10 && x<=14 && y>=3 && y<=6) ||
        (x>=20 && x<=24 && y>=2 && y<=7) ||
        (x>=5 && x<=10 && y>=10 && y<=13) ||
        (x>=15 && x<=19 && y>=15 && y<=18))
-       return 1;
-    return 0;
+      return TILE.BUILDING;
+
+    // Walkable grass
+    return TILE.GRASS;
   })
 );
+
+  
 
 // Player
 const playerImage = new Image();
@@ -231,7 +246,7 @@ function handleMovement() {
 
     if(dx||dy){
       const nx=player.x+dx, ny=player.y+dy;
-      if(map[ny][nx]===0){
+      if(map[ny][nx] === TILE.GRASS){
         player.targetX=nx; player.targetY=ny; player.moving=true;
       }
     }
@@ -279,8 +294,25 @@ function drawMap(){
         if(tile.triggered){ ctx.fillStyle="white"; ctx.font="16px Arial"; ctx.fillText("✔",screenX+8, screenY+24); }
         continue;
       }
-      ctx.fillStyle=map[y][x]===1?"#444":"#88c070";
-      ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+      // Tile colouring based on type
+switch(map[y][x]){
+  case TILE.GRASS:
+    ctx.fillStyle = "#88c070"; // green
+    break;
+
+  case TILE.WALL:
+    ctx.fillStyle = "#2f2f2f"; // darker outer wall
+    break;
+
+  case TILE.BUILDING:
+    ctx.fillStyle = "#666"; // building blocks
+    break;
+
+  default:
+    ctx.fillStyle = "#000";
+}
+
+ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
     }
   }
 }
