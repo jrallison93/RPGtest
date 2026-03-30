@@ -188,27 +188,27 @@ const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
     if(x===0 || y===0 || x===MAP_WIDTH-1 || y===MAP_HEIGHT-1)
       return TILE.WALL;
 
-    // Buildings
-    if((x>=2 && x<=5 && y>=2 && y<=5){
+    // Building 1 (with interior)
+    if(x>=2 && x<=5 && y>=2 && y<=5){
 
-  // Door (bottom middle)
-  if(x===3 && y===5) return TILE.DOOR;
+      if(x===3 && y===5) return TILE.DOOR;
 
-  // Walls (edges)
-  if(x===2 || x===5 || y===2 || y===5)
-    return TILE.BUILDING_WALL;
+      if(x===2 || x===5 || y===2 || y===5)
+        return TILE.BUILDING_WALL;
 
-  // Interior
-  return TILE.FLOOR;
-}|| 
-       (x>=10 && x<=14 && y>=3 && y<=6) ||
-       (x>=20 && x<=24 && y>=2 && y<=7) ||
-       (x>=5 && x<=10 && y>=10 && y<=13) ||
-       (x>=15 && x<=19 && y>=15 && y<=18)
-      )
-      return TILE.BUILDING;
+      return TILE.FLOOR;
+    }
 
-    // Walkable grass
+    // Other buildings (still solid for now)
+    if(
+      (x>=10 && x<=14 && y>=3 && y<=6) ||
+      (x>=20 && x<=24 && y>=2 && y<=7) ||
+      (x>=5 && x<=10 && y>=10 && y<=13) ||
+      (x>=15 && x<=19 && y>=15 && y<=18)
+    ){
+      return TILE.BUILDING_WALL;
+    }
+
     return TILE.GRASS;
   })
 );
