@@ -310,14 +310,19 @@ function showScenarioModal(index){
       document.getElementById("scenarioModalOutcome").innerHTML =
         `<strong>You chose:</strong> ${choice.text}<br><br>${outcomeText}`;
 
+      const continueBtn = document.createElement("button");
+continueBtn.textContent = "Continue";
+
+continueBtn.onclick = ()=>{
+  modal.style.display = "none";
+  scenarioOpen = false;
+};
+
+modalChoices.appendChild(continueBtn);
+
       // Remove buttons after selection (like your main system)
       modalChoices.innerHTML = "";
-
-      // Close after short delay (optional)
-      setTimeout(()=>{
-        modal.style.display = "none";
-        scenarioOpen = false;
-      }, 1500);
+      
     };
 
     modalChoices.appendChild(btn);
