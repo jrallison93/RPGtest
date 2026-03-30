@@ -208,6 +208,10 @@ const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
       if(y===6 && x>=3 && x<=8)
         return TILE.BUILDING_WALL;
 
+      // Example internal door
+      if(x===6 && y===6) 
+        return TILE.DOOR;
+
       return TILE.FLOOR;
     }
 
