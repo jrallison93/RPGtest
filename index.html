@@ -179,86 +179,42 @@ const TILE = {
 };
   
 
-// Fixed 30x30 campus map
+// RAW 30x30 campus map
+const RAW_MAP = [
+"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGBBBBBBBGGGGGGGGGBBBBBBBBGW",
+"WGGGBFFFFFBGGGGGGGGGBFFFFFBGGW",
+"WGGGBFBBFFBGGGGGGGGGBFBBFFBGGW",
+"WGGGBFDFDFBGGGGGGGGGBFDFDFBGGW",
+"WGGGBFFFFFBGGGGGGGGGBFFFFFBGGW",
+"WGGGBBBBBBBGGGGGGGGGBBBBBBBBGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGBBBBBGGGGGGGGGGGGGGGGGW",
+"WGGGGGBFFFBGGGGGGGGGGGGGGGGGW",
+"WGGGGGBFDFBGGGGGGGGGGGGGGGGGW",
+"WGGGGGBFFFBGGGGGGGGGGGGGGGGGW",
+"WGGGGGBBBBBGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGBBBBBBGGGGGGGGGGW",
+"WGGGGGGGGGGGBFFFFBGGGGGGGGGGW",
+"WGGGGGGGGGGGBFDFFBGGGGGGGGGGW",
+"WGGGGGGGGGGGBFFFFBGGGGGGGGGGW",
+"WGGGGGGGGGGGBBBBBBGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WGGGGGGGGGGGGGGGGGGGGGGGGGGGW",
+"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+];
 
-const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
-  Array.from({length: MAP_WIDTH}, (_, x) => {
-
-    if(x===0 || y===0 || x===MAP_WIDTH-1 || y===MAP_HEIGHT-1)
-      return TILE.WALL;
-
-    /* LARGE BUILDING 1 */
-    if(x>=2 && x<=11 && y>=2 && y<=12){
-
-      if(x===6 && y===12) return TILE.DOOR;
-
-      if(x===2 || x===11 || y===2 || y===12)
-        return TILE.BUILDING_WALL;
-
-      // Vertical wall with door at y=6
-      if(x===7 && y>=3 && y<=11){
-        if(y===6) return TILE.DOOR;
-        return TILE.BUILDING_WALL;
-      }
-
-      // Horizontal wall with door at x=5
-      if(y===7 && x>=3 && x<=10){
-        if(x===5) return TILE.DOOR;
-        return TILE.BUILDING_WALL;
-      }
-
-      return TILE.FLOOR;
-    }
-
-    /* LARGE BUILDING 2 */
-    if(x>=16 && x<=27 && y>=2 && y<=13){
-
-      if(x===21 && y===13) return TILE.DOOR;
-
-      if(x===16 || x===27 || y===2 || y===13)
-        return TILE.BUILDING_WALL;
-
-      // Vertical partitions
-      if(x===20 && y>=3 && y<=12){
-        if(y===6) return TILE.DOOR;
-        if(y===10) return TILE.DOOR;
-        return TILE.BUILDING_WALL;
-      }
-
-      if(x===23 && y>=3 && y<=12){
-        if(y===8) return TILE.DOOR;
-        return TILE.BUILDING_WALL;
-      }
-
-      // Horizontal partition
-      if(y===8 && x>=17 && x<=26){
-        if(x===19 || x===24) return TILE.DOOR;
-        return TILE.BUILDING_WALL;
-      }
-
-      return TILE.FLOOR;
-    }
-
-    /* SMALL BUILDING */
-    if(x>=8 && x<=14 && y>=18 && y<=25){
-
-      if(x===11 && y===25) return TILE.DOOR;
-
-      if(x===8 || x===14 || y===18 || y===25)
-        return TILE.BUILDING_WALL;
-
-      if(x===11 && y>=19 && y<=24){
-        if(y===21) return TILE.DOOR;
-        return TILE.BUILDING_WALL;
-      }
-
-      return TILE.FLOOR;
-    }
-
-    return TILE.GRASS;
-  })
-);
-
+  const CHAR_TO_TILE = { W:TILE.WALL, G:TILE.GRASS, B:TILE.BUILDING_WALL, F:TILE.FLOOR, D:TILE.DOOR };
+const map = RAW_MAP.map(row => row.split("").map(c => CHAR_TO_TILE[c] ?? TILE.GRASS));
   
 
 // Player
