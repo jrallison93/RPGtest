@@ -31,13 +31,53 @@
   .score-label { font-weight: bold; color: #555; margin-bottom: 0.2rem; }
   .score-value { font-weight: bold; color: #111; font-size: 1.1rem; }
   .choices button { display:block; width:100%; margin-bottom:0.6rem; padding:0.8rem; cursor:pointer; }
-  #scenarioModal {
-    position: absolute;
-    top:50%; left:50%; transform:translate(-50%, -50%);
-    background:white; color:#111; padding:20px; border-radius:12px; display:none; width:320px; z-index:10;
-  }
+  
+  
+
+
+
+#scenarioModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45); /* overlay backdrop */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#scenarioModal .modal-content {
+  max-width: 700px;
+  width: 90%;
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+  
   #scenarioModal h3 { margin-top:0; }
-  #scenarioModal button { width:100%; margin-top:0.5rem; padding:8px; cursor:pointer; }
+  #scenarioModal button {
+    display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid #e6eefc; 
+      border-radius: 10px;
+      border-left: 6px solid #007bff;
+      background:  #f8fbff;
+      color: #111;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  
+  }
 </style>
 </head>
 <body>
@@ -70,8 +110,32 @@
 </div>
 
 <div id="scenarioModal">
-  <h3 id="scenarioModalText"></h3>
-  <div id="scenarioModalChoices"></div>
+  <div class="modal-content">
+
+    <div class="scores">
+      <div class="score-card">
+        <div class="score-label">Budget</div>
+        <div class="score-value" id="modal-budget"></div>
+      </div>
+      <div class="score-card">
+        <div class="score-label">Reputation</div>
+        <div class="score-value" id="modal-reputation"></div>
+      </div>
+      <div class="score-card">
+        <div class="score-label">Security</div>
+        <div class="score-value" id="modal-security"></div>
+      </div>
+      <div class="score-card">
+        <div class="score-label">Staff Morale</div>
+        <div class="score-value" id="modal-morale"></div>
+      </div>
+    </div>
+
+    <div class="scenario" id="scenarioModalText"></div>
+    <div class="choices" id="scenarioModalChoices"></div>
+    <div class="outcome" id="scenarioModalOutcome"></div>
+
+  </div>
 </div>
 
 <script src="scenario-bank.js"></script>
@@ -211,25 +275,55 @@ function checkEventTile(){
 }
 
 function showScenarioModal(index){
-  const scenario=scenarios[index];
-  modalText.textContent=scenario.text;
-  modalChoices.innerHTML="";
+  const scenario = scenarios[index];
+
+  // Update scores inside modal
+  document.getElementById("modal-budget").textContent = "£" + budget.toLocaleString();
+  document.getElementById("modal-reputation").textContent = reputation;
+  document.getElementById("modal-security").textContent = security;
+  document.getElementById("modal-morale").textContent = morale;
+
+  // Scenario text
+  modalText.textContent = scenario.text;
+
+  // Reset UI
+  modalChoices.innerHTML = "";
+  document.getElementById("scenarioModalOutcome").innerHTML = "";
+
   scenario.choices.forEach(choice=>{
-    const btn=document.createElement("button");
-    btn.textContent=choice.text;
-    btn.onclick=()=>{
-      const effects=choice.getEffects({budget,reputation,security,morale});
-      budget=Math.max(0,budget+(effects.budget||0));
-      reputation=Math.max(0,reputation+(effects.reputation||0));
-      security=Math.max(0,security+(effects.security||0));
-      morale=Math.max(0,morale+(effects.morale||0));
+    const btn = document.createElement("button");
+    btn.textContent = choice.text;
+
+    btn.onclick = ()=>{
+      const effects = choice.getEffects({budget,reputation,security,morale});
+      const outcomeText = choice.getOutcome
+        ? choice.getOutcome({budget,reputation,security,morale})
+        : "";
+
+      budget = Math.max(0, budget + (effects.budget || 0));
+      reputation = Math.max(0, reputation + (effects.reputation || 0));
+      security = Math.max(0, security + (effects.security || 0));
+      morale = Math.max(0, morale + (effects.morale || 0));
+
       updateScoreDisplay();
-      modal.style.display="none";
-      scenarioOpen=false;
+
+      document.getElementById("scenarioModalOutcome").innerHTML =
+        `<strong>You chose:</strong> ${choice.text}<br><br>${outcomeText}`;
+
+      // Remove buttons after selection (like your main system)
+      modalChoices.innerHTML = "";
+
+      // Close after short delay (optional)
+      setTimeout(()=>{
+        modal.style.display = "none";
+        scenarioOpen = false;
+      }, 1500);
     };
+
     modalChoices.appendChild(btn);
   });
-  modal.style.display="block";
+
+  modal.style.display = "flex"; // IMPORTANT change
 }
 
 function updateScoreDisplay(){
