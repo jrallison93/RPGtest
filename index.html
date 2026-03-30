@@ -184,76 +184,77 @@ const TILE = {
 const map = Array.from({length: MAP_HEIGHT}, (_, y) =>
   Array.from({length: MAP_WIDTH}, (_, x) => {
 
-    // Outer boundary
     if(x===0 || y===0 || x===MAP_WIDTH-1 || y===MAP_HEIGHT-1)
       return TILE.WALL;
 
-    /* =========================
-       LARGE BUILDING 1 (Left)
-       ========================= */
+    /* LARGE BUILDING 1 */
     if(x>=2 && x<=11 && y>=2 && y<=12){
 
-      // Main entrance
       if(x===6 && y===12) return TILE.DOOR;
 
-      // Outer walls
       if(x===2 || x===11 || y===2 || y===12)
         return TILE.BUILDING_WALL;
 
-      // Internal vertical wall (with door gap)
-      if(x===7 && y>=3 && y<=11 && y!==7)
+      // Vertical wall with door at y=6
+      if(x===7 && y>=3 && y<=11){
+        if(y===6) return TILE.DOOR;
         return TILE.BUILDING_WALL;
+      }
 
-      // Internal horizontal wall (with door gap)
-      if(y===7 && x>=4 && x<=10 && x!==7)
+      // Horizontal wall with door at x=5
+      if(y===7 && x>=3 && x<=10){
+        if(x===5) return TILE.DOOR;
         return TILE.BUILDING_WALL;
+      }
 
       return TILE.FLOOR;
     }
 
-    /* =========================
-       LARGE BUILDING 2 (Right)
-       ========================= */
+    /* LARGE BUILDING 2 */
     if(x>=16 && x<=27 && y>=2 && y<=13){
 
-      // Main entrance
       if(x===21 && y===13) return TILE.DOOR;
 
-      // Outer walls
       if(x===16 || x===27 || y===2 || y===13)
         return TILE.BUILDING_WALL;
 
-      // Vertical partitions (with gaps)
-      if((x===20 || x===23) && y>=3 && y<=12 && y!==6 && y!==9)
+      // Vertical partitions
+      if(x===20 && y>=3 && y<=12){
+        if(y===6) return TILE.DOOR;
+        if(y===10) return TILE.DOOR;
         return TILE.BUILDING_WALL;
+      }
 
-      // Horizontal partition (with gaps)
-      if(y===8 && x>=17 && x<=26 && x!==20 && x!==23)
+      if(x===23 && y>=3 && y<=12){
+        if(y===8) return TILE.DOOR;
         return TILE.BUILDING_WALL;
+      }
+
+      // Horizontal partition
+      if(y===8 && x>=17 && x<=26){
+        if(x===19 || x===24) return TILE.DOOR;
+        return TILE.BUILDING_WALL;
+      }
 
       return TILE.FLOOR;
     }
 
-    /* =========================
-       SMALL BUILDING (Bottom)
-       ========================= */
+    /* SMALL BUILDING */
     if(x>=8 && x<=14 && y>=18 && y<=25){
 
-      // Entrance
       if(x===11 && y===25) return TILE.DOOR;
 
-      // Outer walls
       if(x===8 || x===14 || y===18 || y===25)
         return TILE.BUILDING_WALL;
 
-      // Internal divider with door gap
-      if(x===10 && y>=19 && y<=24 && y!==22)
+      if(x===11 && y>=19 && y<=24){
+        if(y===21) return TILE.DOOR;
         return TILE.BUILDING_WALL;
+      }
 
       return TILE.FLOOR;
     }
 
-    // Grass
     return TILE.GRASS;
   })
 );
