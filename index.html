@@ -123,6 +123,11 @@
     <div class="score-card">
       <div class="score-label">Staff Morale</div>
       <div class="score-value" id="morale">100</div>
+
+      <div class="inventory">
+  <h3>Inventory</h3>
+  <ul id="inventory-list"></ul>
+</div>
     </div>
   </div>
 
@@ -217,7 +222,36 @@ const RAW_MAP = [
   const CHAR_TO_TILE = { W:TILE.WALL, G:TILE.GRASS, B:TILE.BUILDING_WALL, F:TILE.FLOOR, D:TILE.DOOR };
 const map = RAW_MAP.map(row => row.split("").map(c => CHAR_TO_TILE[c] ?? TILE.GRASS));
   
+// Player inventory
+const inventory = [];
 
+// Items on the map
+const items = [
+  {x: 5, y: 5, name: "Keycard", collected: false},
+  {x: 8, y: 12, name: "Research Notes", collected: false},
+  {x: 15, y: 18, name: "Laptop", collected: false}
+];
+
+function checkItems() {
+  const item = items.find(i => i.x === player.x && i.y === player.y && !i.collected);
+  if(item) {
+    item.collected = true;
+    inventory.push(item.name);
+    alert(`You collected: ${item.name}`);
+    updateInventoryDisplay();
+  }
+}
+
+function updateInventoryDisplay() {
+  const list = document.getElementById("inventory-list");
+  list.innerHTML = "";
+  inventory.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    list.appendChild(li);
+  });
+}
+  
 // Player
 const playerImage = new Image();
 playerImage.src = "Male001_No hair shadow-Mannequin.png";
@@ -264,13 +298,10 @@ function handleMovement() {
 
     if(dx||dy){
       const nx=player.x+dx, ny=player.y+dy;
-      if(
-  map[ny][nx] === TILE.GRASS ||
-  map[ny][nx] === TILE.FLOOR ||
-  map[ny][nx] === TILE.DOOR
-    ){
-
-        player.targetX=nx; player.targetY=ny; player.moving=true;
+      if(map[ny][nx] === TILE.GRASS || map[ny][nx] === TILE.FLOOR || map[ny][nx] === TILE.DOOR){
+        player.targetX=nx; 
+        player.targetY=ny; 
+        player.moving=true;
       }
     }
   }
@@ -279,8 +310,14 @@ function handleMovement() {
     const tx=player.targetX*TILE_SIZE, ty=player.targetY*TILE_SIZE;
     const dx=tx-player.px, dy=ty-player.py;
     if(Math.abs(dx)<SPEED && Math.abs(dy)<SPEED){
-      player.px=tx; player.py=ty; player.x=player.targetX; player.y=player.targetY; player.moving=false;
+      player.px=tx; 
+      player.py=ty; 
+      player.x=player.targetX; 
+      player.y=player.targetY; 
+      player.moving=false;
+
       checkEventTile();
+      checkItems(); // collect items only after reaching target
     } else {
       player.px += Math.sign(dx)*SPEED;
       player.py += Math.sign(dy)*SPEED;
@@ -310,6 +347,7 @@ function drawMap(){
   for(let y=0;y<MAP_HEIGHT;y++){
     for(let x=0;x<MAP_WIDTH;x++){
       const screenX=x*TILE_SIZE-camera.x, screenY=y*TILE_SIZE-camera.y;
+
       const tile=eventTiles.find(t=>t.x===x&&t.y===y);
       if(tile){
         ctx.fillStyle=tile.triggered?"#28a745":"#ff9900";
@@ -317,37 +355,22 @@ function drawMap(){
         if(tile.triggered){ ctx.fillStyle="white"; ctx.font="16px Arial"; ctx.fillText("✔",screenX+8, screenY+24); }
         continue;
       }
-      // Tile colouring based on type
-switch(map[y][x]){
 
-  case TILE.GRASS:
-    ctx.fillStyle = "#88c070";
-    break;
+      switch(map[y][x]){
+        case TILE.GRASS: ctx.fillStyle = "#88c070"; break;
+        case TILE.WALL: ctx.fillStyle = "#2f2f2f"; break;
+        case TILE.BUILDING_WALL: ctx.fillStyle = "#444"; break;
+        case TILE.FLOOR: ctx.fillStyle = "#c2b280"; break;
+        case TILE.DOOR: ctx.fillStyle = "#8b5a2b"; break;
+        default: ctx.fillStyle = "#000";
+      }
+      ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
 
-  case TILE.WALL:
-    ctx.fillStyle = "#2f2f2f"; // outer boundary
-    break;
-
-  case TILE.BUILDING_WALL:
-    ctx.fillStyle = "#444"; // building edge
-    break;
-
-  case TILE.FLOOR:
-    ctx.fillStyle = "#c2b280"; // light interior (beige)
-    break;
-
-  case TILE.DOOR:
-    ctx.fillStyle = "#8b5a2b"; // brown door
-    break;
-
-  default:
-    ctx.fillStyle = "#000";
-}
-
-
-
-      
-ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+      const mapItem = items.find(i => i.x === x && i.y === y && !i.collected);
+      if(mapItem){
+        ctx.fillStyle = "#ff0";
+        ctx.fillRect(screenX + 8, screenY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+      }
     }
   }
 }
