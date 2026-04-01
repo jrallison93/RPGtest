@@ -437,9 +437,8 @@ function handleMovement() {
       player.moving=false;
 
       checkEventTile();
-      checkItems();          // collect BEFORE switching maps
-      checkDoorTransition(); // switch AFTER
-
+      checkDoorTransition();
+      checkItems();
       
     } else {
       player.px += Math.sign(dx)*SPEED;
