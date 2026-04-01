@@ -290,12 +290,12 @@ const RAW_MAP = [
 // Simple building interior map
 const BUILDING_MAP_RAW = [
 "WWWWWWWWWW",
-"WFFFFFFFFW",
-"WFFFFFFFFW",
-"DFFFFFFFFW",
-"WFFFFFFFFW",
-"WFFFFFFFFW",
-"WWWWWWWWWW"
+"WFFFFWFFFW",
+"WFFFFDFFFW",
+"WFFFFWFFFW",
+"WFFFFWFFFW",
+"WFFFFWFFFW",
+"WWWWDWWWWW"
 ];
 
 const buildingMap = BUILDING_MAP_RAW.map(row => row.split("").map(c => CHAR_TO_TILE[c] ?? TILE.GRASS));
