@@ -289,9 +289,6 @@ const itemsByMap = {
   ]
 };
 
-
-
-  
 function checkItems() {
   const items = itemsByMap[currentMapName];
 
@@ -325,7 +322,6 @@ playerImage.src = "Male001_No hair shadow-Mannequin.png";
 const player = { x:1, y:1, px:1*TILE_SIZE, py:1*TILE_SIZE, targetX:1, targetY:1, moving:false, direction:0, frame:0, frameTick:0 };
 const camera = { x:0, y:0 };
 
-  
 // Input
 const keys = {};
 window.addEventListener("keydown", e=>keys[e.key]=true);
@@ -466,7 +462,6 @@ function updateAnimation(){
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawMap();
-  drawDecorations();
   drawPlayer();
 }
 
