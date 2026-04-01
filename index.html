@@ -282,10 +282,11 @@ const inventory = [];
 const itemsByMap = {
   campus: [
     {x: 5, y: 5, name: "Keycard", collected: false},
-    {x: 16, y: 12, name: "Research Notes", collected: false},
     {x: 12, y: 18, name: "Laptop", collected: false}
   ],
-  building: []
+  building: [
+    {x: 4, y: 3, name: "Research Notes", collected: false}
+  ]
 };
 
 function checkItems() {
@@ -338,7 +339,9 @@ const eventTilesByMap = {
     {x:22, y:1, scenarioIndex:2, triggered:false},
     {x:22, y:25, scenarioIndex:3, triggered:false}
   ],
-  building: [] // no events inside yet
+  building: [
+    {x:5, y:4, scenarioIndex:4, triggered:false}
+  ] 
 };
   
 
