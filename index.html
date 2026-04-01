@@ -437,8 +437,10 @@ function handleMovement() {
       player.moving=false;
 
       checkEventTile();
-      checkDoorTransition();
-      checkItems(); // collect items only after reaching target
+      checkItems();          // collect BEFORE switching maps
+      checkDoorTransition(); // switch AFTER
+
+      
     } else {
       player.px += Math.sign(dx)*SPEED;
       player.py += Math.sign(dy)*SPEED;
@@ -488,8 +490,9 @@ function drawMap(){
       }
       ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
 
-      const items = itemsByMap[currentMapName];
+      const items = itemsByMap[currentMapName] || [];
       const mapItem = items.find(i => i.x === x && i.y === y && !i.collected);
+    
         if(mapItem){
         ctx.fillStyle = "#ff0";
         ctx.fillRect(screenX + 8, screenY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
