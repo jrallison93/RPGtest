@@ -516,12 +516,16 @@ function drawMap() {
   const items = itemsByMap[currentMapName] || [];
   const tiles = eventTilesByMap[currentMapName] || [];
 
-  const BORDER = 1; // pixels to skip from each side of the sprite
+  // Turn off smoothing to prevent texture bleeding
+  ctx.imageSmoothingEnabled = false;
+
+  // A small crop to avoid black border bleeding
+  const BORDER = 1.5; // pixels to crop from each side
 
   for (let y = 0; y < getMapHeight(); y++) {
     for (let x = 0; x < getMapWidth(); x++) {
-      const screenX = x * TILE_SIZE - camera.x;
-      const screenY = y * TILE_SIZE - camera.y;
+      const screenX = Math.floor(x * TILE_SIZE - camera.x);
+      const screenY = Math.floor(y * TILE_SIZE - camera.y);
 
       const tileType = currentMap[y][x];
       const spritePos = TILE_SPRITES[tileType];
@@ -529,10 +533,10 @@ function drawMap() {
       if (spritePos) {
         ctx.drawImage(
           tilemapImage,
-          spritePos.x * TILE_SPRITE_WIDTH + BORDER,  // skip left border
-          spritePos.y * TILE_SPRITE_HEIGHT + BORDER, // skip top border
-          TILE_SPRITE_WIDTH - 2 * BORDER,           // width minus borders
-          TILE_SPRITE_HEIGHT - 2 * BORDER,          // height minus borders
+          Math.floor(spritePos.x * TILE_SPRITE_WIDTH + BORDER),
+          Math.floor(spritePos.y * TILE_SPRITE_HEIGHT + BORDER),
+          Math.floor(TILE_SPRITE_WIDTH - 2 * BORDER),
+          Math.floor(TILE_SPRITE_HEIGHT - 2 * BORDER),
           screenX,
           screenY,
           TILE_SIZE,
