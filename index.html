@@ -514,18 +514,15 @@ function draw(){
 
 function drawMap() {
   const items = itemsByMap[currentMapName] || [];
-  const tiles = eventTilesByMap[currentMapName] || [];
 
-  // Turn off smoothing to prevent texture bleeding
   ctx.imageSmoothingEnabled = false;
 
-  // A small crop to avoid black border bleeding
-  const BORDER = 1.5; // pixels to crop from each side
+  const BORDER = 0.5; // minimal crop
 
   for (let y = 0; y < getMapHeight(); y++) {
     for (let x = 0; x < getMapWidth(); x++) {
-      const screenX = Math.floor(x * TILE_SIZE - camera.x);
-      const screenY = Math.floor(y * TILE_SIZE - camera.y);
+      const screenX = Math.round(x * TILE_SIZE - camera.x);
+      const screenY = Math.round(y * TILE_SIZE - camera.y);
 
       const tileType = currentMap[y][x];
       const spritePos = TILE_SPRITES[tileType];
@@ -533,18 +530,17 @@ function drawMap() {
       if (spritePos) {
         ctx.drawImage(
           tilemapImage,
-          Math.floor(spritePos.x * TILE_SPRITE_WIDTH + BORDER),
-          Math.floor(spritePos.y * TILE_SPRITE_HEIGHT + BORDER),
-          Math.floor(TILE_SPRITE_WIDTH - 2 * BORDER),
-          Math.floor(TILE_SPRITE_HEIGHT - 2 * BORDER),
+          spritePos.x * TILE_SPRITE_WIDTH + BORDER,
+          spritePos.y * TILE_SPRITE_HEIGHT + BORDER,
+          TILE_SPRITE_WIDTH - 2 * BORDER,
+          TILE_SPRITE_HEIGHT - 2 * BORDER,
           screenX,
           screenY,
-          TILE_SIZE,
-          TILE_SIZE
+          TILE_SIZE,          // optional: TILE_SIZE - 0.1
+          TILE_SIZE           // optional: TILE_SIZE - 0.1
         );
       }
 
-      // Draw items on top
       const mapItem = items.find(i => i.x === x && i.y === y && !i.collected);
       if (mapItem) {
         ctx.fillStyle = "#ff0";
