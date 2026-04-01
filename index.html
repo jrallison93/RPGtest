@@ -586,63 +586,39 @@ function checkEventTile(){
 }
 
 function showScenarioModal(index){
-  const scenario = scenarios[index];
+  scenarioOpen = true;
+  modal.style.display = "flex";
+  modalText.textContent = scenarios[index].text;
 
-  // Update scores inside modal
-  updateModalScores();
-
-  // Scenario text
-  modalText.textContent = scenario.text;
-
-  // Reset UI
   modalChoices.innerHTML = "";
-  document.getElementById("scenarioModalOutcome").innerHTML = "";
-
-  scenario.choices.forEach(choice=>{
+  scenarios[index].choices.forEach(choice => {
     const btn = document.createElement("button");
     btn.textContent = choice.text;
-
-    btn.onclick = ()=>{
+    btn.onclick = () => {
       const effects = choice.getEffects({budget,reputation,security,morale});
-      const outcomeText = choice.getOutcome
-        ? choice.getOutcome({budget,reputation,security,morale})
-        : "";
-
       budget = Math.max(0, budget + (effects.budget || 0));
       reputation = Math.max(0, reputation + (effects.reputation || 0));
       security = Math.max(0, security + (effects.security || 0));
       morale = Math.max(0, morale + (effects.morale || 0));
-
       updateScoreDisplay();
-      updateModalScores();   
+      updateModalScores();
 
-      document.getElementById("scenarioModalOutcome").innerHTML =
-        `<strong>You chose:</strong> ${choice.text}<br><br>${outcomeText}`;
+      document.getElementById("scenarioModalOutcome").innerHTML = choice.getOutcome
+        ? choice.getOutcome({budget,reputation,security,morale})
+        : "";
 
-    
-      // Remove choice buttons first
-modalChoices.innerHTML = "";
-
-// Create Continue button
-const continueBtn = document.createElement("button");
-continueBtn.textContent = "Continue";
-
-continueBtn.onclick = ()=>{
-  modal.style.display = "none";
-  scenarioOpen = false;
-};
-
-// Add it AFTER clearing
-modalChoices.appendChild(continueBtn);
-
-
-      
+      // Replace buttons with continue
+      modalChoices.innerHTML = "";
+      const continueBtn = document.createElement("button");
+      continueBtn.textContent = "Continue";
+      continueBtn.onclick = () => {
+        modal.style.display = "none";
+        scenarioOpen = false;
+      };
+      modalChoices.appendChild(continueBtn);
     };
-
     modalChoices.appendChild(btn);
   });
-
-  modal.style.display = "flex"; // IMPORTANT change
 }
 
 function updateScoreDisplay(){
