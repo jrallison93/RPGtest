@@ -315,6 +315,20 @@ function updateInventoryDisplay() {
     list.appendChild(li);
   });
 }
+
+
+const tilemapImage = new Image();
+tilemapImage.src = "tilemap.png"; // your 215x134 spritesheet
+const TILE_SPRITE_WIDTH = 215 / 24;  // ≈ 8.958
+const TILE_SPRITE_HEIGHT = 134 / 15; // ≈ 8.933
+
+  const TILE_SPRITES = {
+    [TILE.GRASS]: {x:0, y:0},
+    [TILE.WALL]: {x:2, y:5},
+    [TILE.BUILDING_WALL]: {x:3, y:0},
+    [TILE.FLOOR]: {x:2, y:0},
+    [TILE.DOOR]: {x:1, y:10}
+};  
   
 // Player
 const playerImage = new Image();
@@ -465,48 +479,34 @@ function draw(){
   drawPlayer();
 }
 
-function drawMap(){
-  const items = itemsByMap[currentMapName] || []; // LOCK items for this frame
+function drawMap() {
+  const items = itemsByMap[currentMapName] || [];
   const tiles = eventTilesByMap[currentMapName] || [];
 
-  for(let y = 0; y < getMapHeight(); y++){
-    for(let x = 0; x < getMapWidth(); x++){
-
+  for(let y = 0; y < getMapHeight(); y++) {
+    for(let x = 0; x < getMapWidth(); x++) {
       const screenX = x*TILE_SIZE - camera.x;
       const screenY = y*TILE_SIZE - camera.y;
 
-      // Event tiles
-      const tile = tiles.find(t => t.x === x && t.y === y);
-      if(tile){
-        ctx.fillStyle = tile.triggered ? "#28a745" : "#ff9900";
-        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-        if(tile.triggered){
-          ctx.fillStyle = "white";
-          ctx.font = "16px Arial";
-          ctx.fillText("✔", screenX+8, screenY+24);
-        }
-        continue;
+      const tileType = currentMap[y][x];
+      const spritePos = TILE_SPRITES[tileType];
+
+      if(spritePos) {
+        ctx.drawImage(
+          tilemapImage,
+          spritePos.x * TILE_SPRITE_WIDTH,
+          spritePos.y * TILE_SPRITE_HEIGHT,
+          TILE_SPRITE_WIDTH,
+          TILE_SPRITE_HEIGHT,
+          screenX,
+          screenY,
+          TILE_SIZE,
+          TILE_SIZE
+        );
       }
 
-      // Base tiles
-      switch(currentMap[y][x]){
-        case TILE.GRASS: ctx.fillStyle = "#88c070"; break;
-        case TILE.WALL: ctx.fillStyle = "#2f2f2f"; break;
-        case TILE.BUILDING_WALL: ctx.fillStyle = "#444"; break;
-        case TILE.FLOOR: ctx.fillStyle = "#c2b280"; break;
-        case TILE.DOOR: ctx.fillStyle = "#8b5a2b"; break;
-        default: ctx.fillStyle = "#000";
-      }
-
-      ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-
-      // Items (NOW SAFE)
-      const mapItem = items.find(i =>
-        i.x === x &&
-        i.y === y &&
-        !i.collected
-      );
-
+      // Draw items on top
+      const mapItem = items.find(i => i.x === x && i.y === y && !i.collected);
       if(mapItem){
         ctx.fillStyle = "#ff0";
         ctx.fillRect(screenX + 8, screenY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
@@ -514,7 +514,6 @@ function drawMap(){
     }
   }
 }
-
 function drawPlayer(){
   const spriteSize=32;
   ctx.drawImage(playerImage, player.frame*spriteSize, player.direction*spriteSize, spriteSize,spriteSize, player.px-camera.x, player.py-camera.y, TILE_SIZE, TILE_SIZE);
