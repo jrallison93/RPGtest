@@ -171,8 +171,13 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const TILE_SIZE = 32;
-const MAP_WIDTH = 60;
-const MAP_HEIGHT = 60;
+function getMapWidth(){
+  return currentMap[0].length;
+}
+
+function getMapHeight(){
+  return currentMap.length;
+}
 const SPEED = 4;
 
 const TILE = {
@@ -250,20 +255,48 @@ const RAW_MAP = [
 ];
 
   const CHAR_TO_TILE = { W:TILE.WALL, G:TILE.GRASS, B:TILE.BUILDING_WALL, F:TILE.FLOOR, D:TILE.DOOR };
-const map = RAW_MAP.map(row => row.split("").map(c => CHAR_TO_TILE[c] ?? TILE.GRASS));
+
+  const campusMap = RAW_MAP.map(row => row.split("").map(c => CHAR_TO_TILE[c] ?? TILE.GRASS));
+
+// Simple building interior map
+const BUILDING_MAP_RAW = [
+"WWWWWWWWWW",
+"WFFFFFFFFW",
+"WFFFFFFFFW",
+"WFFFDFFFFW",
+"WFFFFFFFFW",
+"WFFFFFFFFW",
+"WWWWWWWWWW"
+];
+
+const buildingMap = BUILDING_MAP_RAW.map(row => row.split("").map(c => CHAR_TO_TILE[c] ?? TILE.GRASS));
+
+// Active map
+let currentMap = campusMap;
+let currentMapName = "campus";
   
 // Player inventory
 const inventory = [];
 
 // Items on the map
-const items = [
-  {x: 5, y: 5, name: "Keycard", collected: false},
-  {x: 16, y: 12, name: "Research Notes", collected: false},
-  {x: 12, y: 18, name: "Laptop", collected: false}
-];
+const itemsByMap = {
+  campus: [
+    {x: 5, y: 5, name: "Keycard", collected: false},
+    {x: 16, y: 12, name: "Research Notes", collected: false},
+    {x: 12, y: 18, name: "Laptop", collected: false}
+  ],
+  building: []
+};
 
 function checkItems() {
-  const item = items.find(i => i.x === player.x && i.y === player.y && !i.collected);
+  const items = itemsByMap[currentMapName];
+
+  const item = items.find(i =>
+    i.x === player.x &&
+    i.y === player.y &&
+    !i.collected
+  );
+
   if(item) {
     item.collected = true;
     inventory.push(item.name);
@@ -298,19 +331,71 @@ let scenarioOpen = false;
 let budget=500000, reputation=100, security=100, morale=100;
 
 // Event tiles (placed on walkable spaces)
-const eventTiles = [
-  {x:3, y:10, scenarioIndex:0, triggered:false},
-  {x:12, y:1, scenarioIndex:1, triggered:false},
-  {x:22, y:1, scenarioIndex:2, triggered:false},
-  {x:22, y:25, scenarioIndex:3, triggered:false}
+const eventTilesByMap = {
+  campus: [
+    {x:3, y:10, scenarioIndex:0, triggered:false},
+    {x:12, y:1, scenarioIndex:1, triggered:false},
+    {x:22, y:1, scenarioIndex:2, triggered:false},
+    {x:22, y:25, scenarioIndex:3, triggered:false}
+  ],
+  building: [] // no events inside yet
+};
+  
+
+const doors = [
+  // Campus → Building
+  {
+    from: "campus",
+    x: 8,
+    y: 19,
+    to: "building",
+    targetX: 4,
+    targetY: 3
+  },
+
+  // Building → Campus
+  {
+    from: "building",
+    x: 4,
+    y: 3,
+    to: "campus",
+    targetX: 20,
+    targetY: 9
+  }
 ];
 
+  function checkDoorTransition(){
+  const door = doors.find(d =>
+    d.from === currentMapName &&
+    d.x === player.x &&
+    d.y === player.y
+  );
+
+  if(door){
+    // Switch map
+    if(door.to === "campus"){
+      currentMap = campusMap;
+    } else if(door.to === "building"){
+      currentMap = buildingMap;
+    }
+
+    currentMapName = door.to;
+
+    // Move player to new position
+    player.x = door.targetX;
+    player.y = door.targetY;
+    player.px = door.targetX * TILE_SIZE;
+    player.py = door.targetY * TILE_SIZE;
+  }
+}
+  
 function update() {
   if(!scenarioOpen) handleMovement();
   updateCamera();
   updateAnimation();
 }
 
+  
   function updateModalScores(){
   document.getElementById("modal-budget").textContent = "£" + budget.toLocaleString();
   document.getElementById("modal-reputation").textContent = reputation;
@@ -328,7 +413,9 @@ function handleMovement() {
 
     if(dx||dy){
       const nx=player.x+dx, ny=player.y+dy;
-      if(map[ny][nx] === TILE.GRASS || map[ny][nx] === TILE.FLOOR || map[ny][nx] === TILE.DOOR){
+      if(ny < 0 || ny >= getMapHeight() || nx < 0 || nx >= getMapWidth()) return;
+      
+      if(currentMap[ny][nx] === TILE.GRASS || currentMap[ny][nx] === TILE.FLOOR || currentMap[ny][nx] === TILE.DOOR){
         player.targetX=nx; 
         player.targetY=ny; 
         player.moving=true;
@@ -347,6 +434,7 @@ function handleMovement() {
       player.moving=false;
 
       checkEventTile();
+      checkDoorTransition();
       checkItems(); // collect items only after reaching target
     } else {
       player.px += Math.sign(dx)*SPEED;
@@ -374,11 +462,12 @@ function draw(){
 }
 
 function drawMap(){
-  for(let y=0;y<MAP_HEIGHT;y++){
-    for(let x=0;x<MAP_WIDTH;x++){
+  for(let y=0;y<getMapHeight();y++){
+  for(let x=0;x<getMapWidth();x++){    
       const screenX=x*TILE_SIZE-camera.x, screenY=y*TILE_SIZE-camera.y;
-
-      const tile=eventTiles.find(t=>t.x===x&&t.y===y);
+      const tiles = eventTilesByMap[currentMapName];
+      const tile = tiles.find(t => t.x === x && t.y === y);
+    
       if(tile){
         ctx.fillStyle=tile.triggered?"#28a745":"#ff9900";
         ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
@@ -386,7 +475,7 @@ function drawMap(){
         continue;
       }
 
-      switch(map[y][x]){
+      switch(currentMap[y][x]){
         case TILE.GRASS: ctx.fillStyle = "#88c070"; break;
         case TILE.WALL: ctx.fillStyle = "#2f2f2f"; break;
         case TILE.BUILDING_WALL: ctx.fillStyle = "#444"; break;
@@ -396,8 +485,9 @@ function drawMap(){
       }
       ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
 
+      const items = itemsByMap[currentMapName];
       const mapItem = items.find(i => i.x === x && i.y === y && !i.collected);
-      if(mapItem){
+        if(mapItem){
         ctx.fillStyle = "#ff0";
         ctx.fillRect(screenX + 8, screenY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
       }
@@ -415,10 +505,17 @@ const modalText = document.getElementById("scenarioModalText");
 const modalChoices = document.getElementById("scenarioModalChoices");
 
 function checkEventTile(){
-  const tile=eventTiles.find(t=>t.x===player.x&&t.y===player.y&&!t.triggered);
+  const tiles = eventTilesByMap[currentMapName];
+
+  const tile = tiles.find(t =>
+    t.x === player.x &&
+    t.y === player.y &&
+    !t.triggered
+  );
+
   if(tile){
-    tile.triggered=true;
-    scenarioOpen=true;
+    tile.triggered = true;
+    scenarioOpen = true;
     showScenarioModal(tile.scenarioIndex);
   }
 }
