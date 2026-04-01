@@ -289,6 +289,9 @@ const itemsByMap = {
   ]
 };
 
+
+
+  
 function checkItems() {
   const items = itemsByMap[currentMapName];
 
@@ -322,6 +325,28 @@ playerImage.src = "Male001_No hair shadow-Mannequin.png";
 const player = { x:1, y:1, px:1*TILE_SIZE, py:1*TILE_SIZE, targetX:1, targetY:1, moving:false, direction:0, frame:0, frameTick:0 };
 const camera = { x:0, y:0 };
 
+const decorationSheet = new Image();
+decorationSheet.src = "decorations.png";
+
+const decorations = [
+  {x: 5, y: 5, sx: 0, sy: 0, w: 32, h: 32},  // tree
+  {x: 10, y: 8, sx: 32, sy: 0, w: 32, h: 32}, // bush
+  {x: 15, y: 12, sx: 64, sy: 0, w: 32, h: 32} // rock
+];
+
+function drawDecorations() {
+  decorations.forEach(dec => {
+    const screenX = dec.x * TILE_SIZE - camera.x;
+    const screenY = dec.y * TILE_SIZE - camera.y;
+    
+    ctx.drawImage(
+      decorationSheet,
+      dec.sx, dec.sy, dec.w, dec.h,  // source rectangle
+      screenX, screenY, TILE_SIZE, TILE_SIZE // destination rectangle
+    );
+  });
+}
+  
 // Input
 const keys = {};
 window.addEventListener("keydown", e=>keys[e.key]=true);
@@ -462,6 +487,7 @@ function updateAnimation(){
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawMap();
+  drawDecorations();
   drawPlayer();
 }
 
